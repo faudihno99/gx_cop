@@ -503,29 +503,3 @@ df_casted.write.format("delta").mode("overwrite").save(TARGET_PATH)
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-idation failed for object 'public_holidays'. "
-        f"Run ID: {run_id}"
-    )
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# ## Write Base table
-# Persist the validated DataFrame to the Base Delta table (overwrite mode).
-
-# CELL ********************
-
-df_casted.write.format("delta").mode("overwrite").save(TARGET_PATH)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
