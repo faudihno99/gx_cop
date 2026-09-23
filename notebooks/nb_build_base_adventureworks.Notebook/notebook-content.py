@@ -8,12 +8,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d5239aa0-743a-4a11-ba53-5714db5e4180",
-# META       "default_lakehouse_name": "lh_sample",
-# META       "default_lakehouse_workspace_id": "db1a93cb-2278-4b41-bfad-92bd940d9574",
+# META       "default_lakehouse": "7dac0dcd-0c57-4bd3-8630-01ceab3cccaa",
+# META       "default_lakehouse_name": "lh_cop",
+# META       "default_lakehouse_workspace_id": "2657fe4d-c298-4d4e-856c-78c3306cfe8d",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "d5239aa0-743a-4a11-ba53-5714db5e4180"
+# META           "id": "7dac0dcd-0c57-4bd3-8630-01ceab3cccaa"
 # META         }
 # META       ]
 # META     },
@@ -115,8 +115,8 @@ def data_type_casting(df: DataFrame, cast_dict: dict) -> DataFrame:
 # CELL ********************
 
 # Define global variables
-SOURCE_PATH = "Tables/histlanding/publicholidays"
-TARGET_PATH = "Tables/base/public_holidays"
+SOURCE_PATH = "Tables/histlanding/sample_public_holidays"
+TARGET_PATH = "Tables/base/sample_public_holidays"
 
 RENAME_MAPPING = {
     "countryOrRegion": "country_region",
