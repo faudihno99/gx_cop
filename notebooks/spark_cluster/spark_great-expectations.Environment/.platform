@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Environment",
+    "displayName": "spark_great-expectations",
+    "description": "Environment"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "ed6a0cff-34a1-a975-41f3-5dca9273c293"
+  }
+}
