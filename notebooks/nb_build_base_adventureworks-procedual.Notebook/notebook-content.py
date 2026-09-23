@@ -40,8 +40,7 @@
 # 3. Cast columns to the expected data types.
 # 4. Run the configured Great Expectations data quality checks.
 # 5. Write the validated DataFrame to the Base Delta table (overwrite mode).
-#
-# This notebook executes the process **procedurally, step by step** — instead of
+# # This notebook executes the process **procedurally, step by step** — instead of
 # calling the orchestrating functions. Every Great Expectations concept (Data
 # Context, Data Source, Data Asset & Batch Definition, Batch, Expectation Suite,
 # Expectations, Validation, Results Extraction) lives in its own cell with a
