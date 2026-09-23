@@ -40,11 +40,12 @@
 # 3. Cast columns to the expected data types.
 # 4. Run the configured Great Expectations data quality checks.
 # 5. Write the validated DataFrame to the Base Delta table (overwrite mode).
-# # This notebook executes the process **procedurally, step by step** — instead of
+# This notebook executes the process **procedurally, step by step** — instead of
 # calling the orchestrating functions. Every Great Expectations concept (Data
 # Context, Data Source, Data Asset & Batch Definition, Batch, Expectation Suite,
 # Expectations, Validation, Results Extraction) lives in its own cell with a
 # `#### <concept-gx>` markdown header so the full DQ process becomes visible.
+
 
 # CELL ********************
 
@@ -182,8 +183,9 @@ df = spark.read.format("delta").load(SOURCE_PATH)
 
 # MARKDOWN ********************
 
-# ## Rename columns
+# ## Rename and Cast columns
 # Apply the Base naming convention via `renaming_columns()`.
+# Cast columns to the expected Base data types via `data_type_casting()`.
 
 # CELL ********************
 
@@ -195,11 +197,6 @@ df_renamed = renaming_columns(df, RENAME_MAPPING)
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
-
-# MARKDOWN ********************
-
-# ## Cast columns
-# Cast columns to the expected Base data types via `data_type_casting()`.
 
 # CELL ********************
 
@@ -254,6 +251,18 @@ context = gx.get_context(mode="ephemeral")
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# CELL ********************
+
+# Show Empty Data Context
+print(context)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # MARKDOWN ********************
 
 # #### Data Source
@@ -276,7 +285,6 @@ datasource = context.data_sources.add_spark(name="dq_spark_runtime")
 # #### Data Asset & Batch Definition
 # The **Data Asset** holds the DataFrame to validate; the **Batch Definition**
 # selects which part of the asset is validated — here the whole DataFrame.
-# A unique asset name (run-ID suffixed) avoids collisions on repeated runs.
 
 # CELL ********************
 
@@ -316,14 +324,26 @@ batch = batch_definition.get_batch(
 
 # #### Expectation Suite
 # The **Expectation Suite** is a container for the configured checks. It must
-# be registered with the context **before** expectations are added, otherwise
-# GX silently discards them.
+# be registered with the context **before** expectations are added.
 
 # CELL ********************
 
 suite_name = f"dq_base_public_holidays"
 suite = gx.ExpectationSuite(name=suite_name)
 suite = context.suites.add(suite)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Show Filled Data Context. 
+# Now contains Data Source (spark-df), Data-Asset (public-holiday) & Batch-Definition (Whole-Dataframe), 
+print(context)
 
 # METADATA ********************
 
@@ -362,9 +382,11 @@ config_entry = BASE_GX_CONFIG["public_holidays"]
 gx_validation = config_entry["gx_validation"]
 
 for validation in gx_validation:
+    # Get Expectation from Config
     expectation_name = validation["expectation"]
     expectation_class = _EXPECTATION_MAP[expectation_name]
 
+    # Define Parameters for respective Expectation
     kwargs = {}
     if "column" in validation:
         kwargs["column"] = validation["column"]
@@ -393,7 +415,7 @@ for validation in gx_validation:
 # MARKDOWN ********************
 
 # #### Validation
-# Execute the populated **Expectation Suite** against the **Batch**.
+# __Execute__ the populated **Expectation Suite** against the **Batch**.
 
 # CELL ********************
 
