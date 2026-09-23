@@ -45,6 +45,9 @@
 
 # Import required packages
 from pyspark.sql.types import BooleanType, DateType, StringType
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col
+import great_expectations as gx
 
 # METADATA ********************
 
@@ -55,7 +58,36 @@ from pyspark.sql.types import BooleanType, DateType, StringType
 
 # CELL ********************
 
-%run nb_utils_base
+# Sample Utils
+
+def renaming_columns(df: DataFrame, rename_dict: dict) -> DataFrame:
+    """Rename DataFrame columns based on a mapping of {source: target}.
+
+    Fails fast if a source column is not present in the DataFrame.
+    """
+    source_columns = set(df.columns)
+    missing_columns = set(rename_dict.keys()) - source_columns
+    if missing_columns:
+        raise ValueError(f"Columns not found in DataFrame: {sorted(missing_columns)}")
+
+    for source_name, target_name in rename_dict.items():
+        df = df.withColumnRenamed(source_name, target_name)
+    return df
+
+def data_type_casting(df: DataFrame, cast_dict: dict) -> DataFrame:
+    """Cast DataFrame columns to target data types based on {column: type}.
+
+    Fails fast if a column is not present in the DataFrame.
+    """
+    source_columns = set(df.columns)
+    missing_columns = set(cast_dict.keys()) - source_columns
+    if missing_columns:
+        raise ValueError(f"Columns not found in DataFrame: {sorted(missing_columns)}")
+
+    for column_name, data_type in cast_dict.items():
+        df = df.withColumn(column_name, col(column_name).cast(data_type))
+    return df
+
 
 # METADATA ********************
 
@@ -66,7 +98,7 @@ from pyspark.sql.types import BooleanType, DateType, StringType
 
 # CELL ********************
 
-%run nb_build_base_greatexpectation
+%run nb_utils_greatexpectation
 
 # METADATA ********************
 
