@@ -439,7 +439,7 @@ validation_results = batch.validate(suite, result_format="SUMMARY")
 
 config_entry = BASE_GX_CONFIG["public_holidays"]
 
-validation_results, results = _extract_results(
+results = _extract_results(
     validation_results=validation_results,
     gx_validation=config_entry["gx_validation"],
     config_entry=config_entry,
