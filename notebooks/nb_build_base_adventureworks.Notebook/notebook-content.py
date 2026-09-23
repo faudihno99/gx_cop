@@ -107,6 +107,17 @@ def data_type_casting(df: DataFrame, cast_dict: dict) -> DataFrame:
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# CELL ********************
+
+%run nb_config_base_greatexpectation 
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # MARKDOWN ********************
 
 # ## Parameters
