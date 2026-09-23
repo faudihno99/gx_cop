@@ -58,8 +58,29 @@ import great_expectations as gx
 
 # CELL ********************
 
-# Sample Utils
+%run nb_utils_greatexpectation
 
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+%run nb_config_base_greatexpectation 
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Sample Utils
 def renaming_columns(df: DataFrame, rename_dict: dict) -> DataFrame:
     """Rename DataFrame columns based on a mapping of {source: target}.
 
@@ -89,27 +110,21 @@ def data_type_casting(df: DataFrame, cast_dict: dict) -> DataFrame:
     return df
 
 
-# METADATA ********************
+def build_public_holidays() -> None:
+    # Read Source Table
+    df = spark.read.format("delta").load(SOURCE_PATH)
 
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+    # Rename Columns
+    df_renamed = renaming_columns(df, RENAME_MAPPING)
 
-# CELL ********************
+    # Data Type Casting
+    df_casted = data_type_casting(df_renamed, CAST_MAPPING)
 
-%run nb_utils_greatexpectation
+    # GX Data Quality Validation
+    run_base_gx(df_casted, "public_holidays")
 
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-%run nb_config_base_greatexpectation 
+    # Write Target Delta Table
+    df_casted.write.format("delta").mode("overwrite").save(TARGET_PATH)
 
 # METADATA ********************
 
@@ -159,31 +174,6 @@ CAST_MAPPING = {
 # ## Build public_holidays
 # `build_public_holidays()` orchestrates the whole Base build: read, rename,
 # cast, validate with Great Expectations and finally write the Base Delta table.
-
-# CELL ********************
-
-def build_public_holidays() -> None:
-    # Read Source Table
-    df = spark.read.format("delta").load(SOURCE_PATH)
-
-    # Rename Columns
-    df_renamed = renaming_columns(df, RENAME_MAPPING)
-
-    # Data Type Casting
-    df_casted = data_type_casting(df_renamed, CAST_MAPPING)
-
-    # GX Data Quality Validation
-    run_base_gx(df_casted, "public_holidays")
-
-    # Write Target Delta Table
-    df_casted.write.format("delta").mode("overwrite").save(TARGET_PATH)
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
 
 # CELL ********************
 
