@@ -69,13 +69,13 @@ BASE_GX_CONFIG = {
             {
                 "expectation": "expect_column_values_to_be_of_type",
                 "column": "is_paidtimeoff",
-                "type_": "boolean",
+                "type_": "BooleanType",
                 "severity": "critical"
             },
             {
                 "expectation": "expect_column_values_to_be_of_type",
                 "column": "date",
-                "type_": "date",
+                "type_": "DateType",
                 "severity": "critical"
             },
 
