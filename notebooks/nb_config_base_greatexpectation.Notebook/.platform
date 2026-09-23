@@ -2,10 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "nb_utils_gx"
+    "displayName": "nb_config_base_greatexpectation",
+    "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "e4b57059-f229-aa64-43e5-5a17ada2307c"
+    "logicalId": "6ac35d0e-ece1-800b-495e-1c4e397e2258"
   }
 }
