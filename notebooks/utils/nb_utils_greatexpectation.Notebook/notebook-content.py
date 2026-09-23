@@ -233,6 +233,7 @@ def get_datacontext_gx(mode_context: str = "ephemeral"):
     elif mode_context == "ephemeral":
         datacontext = gx.get_context(mode="ephemeral")
 
+    _logger.info("GX Data Context created (mode_context='%s')", mode_context)
     return datacontext
 
 # METADATA ********************
@@ -290,10 +291,19 @@ def get_datasource_gx(
 
     # get-or-create: GX raises LookupError if the datasource does not exist yet.
     try:
-        return context.data_sources.get(datasource_name)
+        datasource = context.data_sources.get(datasource_name)
+        _logger.info(
+            "Reusing existing GX datasource '%s' (type='%s')",
+            datasource_name, datasource_type
+        )
+        return datasource
     except LookupError:
-        _logger.info("Creating GX datasource '%s'", datasource_name)
-        return context.data_sources.add_spark(name=datasource_name)
+        datasource = context.data_sources.add_spark(name=datasource_name)
+        _logger.info(
+            "Created GX datasource '%s' (type='%s')",
+            datasource_name, datasource_type
+        )
+        return datasource
 
 # METADATA ********************
 
@@ -348,6 +358,10 @@ def get_dataasset_gx(
     batch_definition = data_asset.add_batch_definition_whole_dataframe(
         name=batch_definition_name
     )
+    _logger.info(
+        "GX data asset '%s' created with batch definition '%s'",
+        asset_name, batch_definition_name
+    )
     return data_asset, batch_definition
 
 # METADATA ********************
@@ -398,9 +412,14 @@ def _get_dataframe_batch(
             f"got {type(df).__name__}"
         )
 
-    return batch_definition.get_batch(
+    batch = batch_definition.get_batch(
         batch_parameters={"dataframe": df}
     )
+    _logger.info(
+        "GX batch bound to DataFrame (%d columns)",
+        len(df.columns)
+    )
+    return batch
 
 # METADATA ********************
 
@@ -445,7 +464,9 @@ def _create_suite(
     >>> suite = _create_suite(context, "dq_base_customer")
     """
     suite = gx.ExpectationSuite(name=suite_name)
-    return context.suites.add(suite)
+    suite = context.suites.add(suite)
+    _logger.info("GX expectation suite '%s' created", suite_name)
+    return suite
 
 # METADATA ********************
 
@@ -469,7 +490,16 @@ def _add_expectations_to_suite(suite: Any, gx_validation: List[Dict[str, Any]]):
         )
 
     for validation in gx_validation:
-        suite.add_expectation(_build_expectation(validation))
+        expectation = _build_expectation(validation)
+
+        column = validation.get("column") or ", ".join(
+            validation.get("columns", [])
+        )
+        _logger.info(
+            "Added expectation '%s' on '%s'",
+            validation.get("expectation"), column
+        )
+        suite.add_expectation(expectation)
 
 # METADATA ********************
 
@@ -686,6 +716,24 @@ def _extract_results(
             unexpected_percent = _get_result_value(gx_result_data, "unexpected_percent", 0.0)
             observed_value = str(_get_result_value(gx_result_data, "observed_value", ""))
 
+        if status == "PASS":
+            _logger.info(
+                "DQ check PASSED - type='%s' column='%s' (object='%s')",
+                identity_key[0], column_name, object_name
+            )
+        elif status == "ERROR":
+            _logger.warning(
+                "DQ check ERROR - type='%s' column='%s' (object='%s'): %s",
+                identity_key[0], column_name, object_name, error_message
+            )
+        else:
+            _logger.warning(
+                "DQ check FAILED - type='%s' column='%s' (object='%s'): "
+                "unexpected_count=%s unexpected_percent=%s observed_value=%s",
+                identity_key[0], column_name, object_name,
+                unexpected_count, unexpected_percent, observed_value
+            )
+
         results.append({
             "run_id": run_id,
             "run_timestamp": run_timestamp,
@@ -709,6 +757,14 @@ def _extract_results(
     # Emit ERROR rows for any expectations that GX did not return a result for.
     for identity_key, queue in check_lookup.items():
         for missing in queue:
+            column_name = missing.get(
+                "column", ", ".join(missing.get("columns", []))
+            )
+            _logger.warning(
+                "DQ check ERROR - type='%s' column='%s' (object='%s'): "
+                "GX did not return a result for this expectation",
+                identity_key[0], column_name, object_name
+            )
             results.append({
                 "run_id": run_id,
                 "run_timestamp": run_timestamp,
@@ -717,9 +773,7 @@ def _extract_results(
                 "schema_name": config_entry.get("schema_name"),
                 "table_name": config_entry.get("table_name"),
                 "object_name": object_name,
-                "column_name": missing.get(
-                    "column", ", ".join(missing.get("columns", []))
-                ),
+                "column_name": column_name,
                 "expectation_type": identity_key[0],
                 "success": False,
                 "status": "ERROR",
@@ -950,6 +1004,19 @@ def run_validation_gx(
         run_timestamp=run_timestamp
     )
     _logger.info("Extracted %d result rows for '%s'", len(results), object_name)
+
+    summary_statuses = defaultdict(int)
+    for row in results:
+        summary_statuses[row["status"]] += 1
+    _logger.info(
+        "DQ run summary for '%s' - total=%d pass=%d fail=%d error=%d success=%s",
+        object_name,
+        len(results),
+        summary_statuses.get("PASS", 0),
+        summary_statuses.get("FAIL", 0),
+        summary_statuses.get("ERROR", 0),
+        validation_results.success
+    )
 
     return validation_results, results
 
