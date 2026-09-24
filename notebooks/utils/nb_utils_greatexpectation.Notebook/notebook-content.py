@@ -794,6 +794,64 @@ def _extract_results(
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# ## Print Results Summary
+# Prints a per-check status and a run summary from the standardised result
+# rows produced by ``_extract_results``. This keeps the printing logic out of
+# the build notebooks so it stays consistent across all objects.
+
+# CELL ********************
+
+def print_dq_results_summary(results, validation_results):
+    """Print per-check status and a run summary from standardised DQ results.
+
+    Parameters
+    ----------
+    results : list of dict
+        Standardised result rows produced by ``_extract_results``.
+    validation_results
+        Native GX validation results object exposing a ``success`` attribute.
+    """
+    summary_statuses = defaultdict(int)
+    for row in results:
+        summary_statuses[row["status"]] += 1
+
+        if row["status"] == "PASS":
+            print(
+                f"[{row['status']}] {row['expectation_type']} "
+                f"on '{row['column_name']}'"
+            )
+        elif row["status"] == "ERROR":
+            print(
+                f"[{row['status']}] {row['expectation_type']} "
+                f"on '{row['column_name']}': {row['error_message']}"
+            )
+        else:
+            print(
+                f"[{row['status']}] {row['expectation_type']} "
+                f"on '{row['column_name']}': "
+                f"unexpected_count={row['unexpected_count']} "
+                f"unexpected_percent={row['unexpected_percent']} "
+                f"observed_value={row['observed_value']}"
+            )
+
+    print(
+        "DQ run summary - "
+        f"total={len(results)} "
+        f"pass={summary_statuses.get('PASS', 0)} "
+        f"fail={summary_statuses.get('FAIL', 0)} "
+        f"error={summary_statuses.get('ERROR', 0)} "
+        f"success={validation_results.success}"
+    )
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 def _format_metric_error(gx_result: Any):

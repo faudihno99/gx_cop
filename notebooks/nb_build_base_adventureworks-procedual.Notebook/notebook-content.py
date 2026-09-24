@@ -56,7 +56,6 @@ from pyspark.sql.functions import col
 import great_expectations as gx
 import uuid
 from datetime import datetime, timezone
-from collections import defaultdict
 
 # METADATA ********************
 
@@ -448,38 +447,7 @@ results = _extract_results(
     run_timestamp=run_timestamp
 )
 
-for row in results:
-    if row["status"] == "PASS":
-        print(
-            f"[{row['status']}] {row['expectation_type']} "
-            f"on '{row['column_name']}'"
-        )
-    elif row["status"] == "ERROR":
-        print(
-            f"[{row['status']}] {row['expectation_type']} "
-            f"on '{row['column_name']}': {row['error_message']}"
-        )
-    else:
-        print(
-            f"[{row['status']}] {row['expectation_type']} "
-            f"on '{row['column_name']}': "
-            f"unexpected_count={row['unexpected_count']} "
-            f"unexpected_percent={row['unexpected_percent']} "
-            f"observed_value={row['observed_value']}"
-        )
-
-summary_statuses = defaultdict(int)
-for row in results:
-    summary_statuses[row["status"]] += 1
-
-print(
-    "DQ run summary - "
-    f"total={len(results)} "
-    f"pass={summary_statuses.get('PASS', 0)} "
-    f"fail={summary_statuses.get('FAIL', 0)} "
-    f"error={summary_statuses.get('ERROR', 0)} "
-    f"success={validation_results.success}"
-)
+print_dq_results_summary(results, validation_results)
 
 # METADATA ********************
 
