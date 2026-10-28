@@ -270,6 +270,7 @@ print(context)
 
 # CELL ********************
 
+# Add Data Source for Spark-Dataframe
 datasource = context.data_sources.add_spark(name="dq_spark_runtime")
 
 # METADATA ********************
@@ -287,27 +288,13 @@ datasource = context.data_sources.add_spark(name="dq_spark_runtime")
 
 # CELL ********************
 
-asset_name = f"base_public_holidays_{run_id}"
-data_asset = datasource.add_dataframe_asset(name=asset_name)
+# Define Data Asset for Table 'base_public_holidays' 
+data_asset = datasource.add_dataframe_asset(name="base_public_holidays")
+
+# Add Batch Definition for entire Dataframe.
 batch_definition = data_asset.add_batch_definition_whole_dataframe(
     name="whole_dataframe"
 )
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# MARKDOWN ********************
-
-# #### Batch
-# The **Batch** binds the actual in-memory Spark DataFrame to the batch
-# definition at runtime. This is the data being validated.
-
-# CELL ********************
-
 batch = batch_definition.get_batch(
     batch_parameters={"dataframe": df_casted}
 )
@@ -327,7 +314,7 @@ batch = batch_definition.get_batch(
 
 # CELL ********************
 
-suite_name = f"dq_base_public_holidays"
+suite_name = "dq_base_public_holidays"
 suite = gx.ExpectationSuite(name=suite_name)
 suite = context.suites.add(suite)
 
@@ -360,6 +347,7 @@ print(context)
 
 # CELL ********************
 
+# Mapping of expectations
 _EXPECTATION_MAP = {
     "expect_column_values_to_not_be_null":
         gx.expectations.ExpectColumnValuesToNotBeNull,
@@ -380,6 +368,7 @@ _EXPECTATION_MAP = {
 config_entry = BASE_GX_CONFIG["public_holidays"]
 gx_validation = config_entry["gx_validation"]
 
+# Add each Expectation to Expectation Suite
 for validation in gx_validation:
     # Get Expectation from Config
     expectation_name = validation["expectation"]
@@ -418,6 +407,7 @@ for validation in gx_validation:
 
 # CELL ********************
 
+# Execute Testing
 validation_results = batch.validate(suite, result_format="SUMMARY")
 
 # METADATA ********************
